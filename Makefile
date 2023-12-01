@@ -46,3 +46,8 @@ demo:
 		-e HOME="/data" \
 		--env-file $(ENV_FILE_PATH) \
 		${DEMO_NAME} ./demo.sh
+
+ngrok:
+	@test -n "$(NGROK_AUTHTOKEN)" || (echo "NGROK_AUTHTOKEN is not set" ; exit 1)
+	docker run --rm -it --net=host -e NGROK_AUTHTOKEN=$(NGROK_AUTHTOKEN) ngrok/ngrok:3-alpine \
+		tcp 6565 # gRPC server port

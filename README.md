@@ -41,8 +41,7 @@ It is configured by default to send metrics, traces, and logs to the observabili
 
    e. .net 6 sdk
 
-   f. docker loki driver
-    
+   f. (optional) docker loki driver
       ```
       docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
       ```
@@ -50,7 +49,7 @@ It is configured by default to send metrics, traces, and logs to the observabili
 
    h. [postman](https://www.postman.com/)
 
-2. A local copy of [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository.
+2. (optional) A local copy of [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository.
 
    ```
    git clone https://github.com/AccelByte/grpc-plugin-dependencies.git
@@ -135,17 +134,36 @@ docker-compose up --build
 
 The custom functions in this sample app can be tested locally using `postman`.
 
-1. Run the `dependency services` by following the `README.md` in the [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository.
+1. (optional) Run the `dependency services` by following the `README.md` in the [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository.
 
    > :warning: **Make sure to start dependency services with mTLS disabled for now**: It is currently not supported by `AccelByte Gaming Services`, but it will be enabled later on to improve security. If it is enabled, the gRPC client calls without mTLS will be rejected.
 
-2. Run this `gRPC server` sample app.
+2. (optional) If you want to send sample app's log to loki in `dependency services`:
+      - Install `docker loki driver`
+         ```
+         docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+         ```
+      - Uncomment these lines in `docker-compose.yml` file
+         ```
+         services:
+            ...
+               # logging:
+               #   driver: loki
+               #   options:
+               #     loki-url: http://localhost:3100/loki/api/v1/push
+               #     mode: non-blocking
+               #     max-buffer-size: 4m
+               #     loki-retries: "3"
+            ...
+         ```
 
-3. Open `postman`, create a new `gRPC request` (tutorial [here](https://blog.postman.com/postman-now-supports-grpc/)), and enter `localhost:10000` as server URL. 
+3. Run this `gRPC server` sample app.
 
-   > :exclamation: We are essentially accessing the `gRPC server` through an `Envoy` proxy in `dependency services`.
+4. Open `postman`, create a new `gRPC request` (tutorial [here](https://blog.postman.com/postman-now-supports-grpc/)), and enter `localhost:6565` as server URL.
 
-4. Still in `postman`, continue by selecting `CloudsaveValidatorService/BeforeWritePlayerRecord` method and invoke it with the sample message below.
+   > :exclamation: If you run `dependency services`, use `localhost:10000` as we will accessing the `gRPC server` through an `Envoy` proxy in `dependency services`.
+
+5. Still in `postman`, continue by selecting `CloudsaveValidatorService/BeforeWritePlayerRecord` method and invoke it with the sample message below.
 
    a. With a VALID `payload`
 
@@ -220,21 +238,42 @@ integration test with `AccelByte Gaming Services`. Here, we are going to expose 
 in local development environment to the internet so that it can be called by
 `AccelByte Gaming Services`. To do this without requiring public IP, we can use [ngrok](https://ngrok.com/)
 
-1. Run the `dependency services` by following the `README.md` in the [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository.
+1. (optional) Run the `dependency services` by following the `README.md` in the [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository.
 
    > :warning: **Make sure to start dependency services with mTLS disabled for now**: It is currently not supported by `AccelByte Gaming Services`, but it will be enabled later on to improve security. If it is enabled, the gRPC client calls without mTLS will be rejected.
 
-2. Run this `gRPC server` sample app.
+2. (optional) If you want to send sample app's log to loki in `dependency services`:
+      - Install `docker loki driver`
+         ```
+         docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+         ```
+      - Uncomment these lines in `docker-compose.yml` file
+         ```
+         services:
+            ...
+               # logging:
+               #   driver: loki
+               #   options:
+               #     loki-url: http://localhost:3100/loki/api/v1/push
+               #     mode: non-blocking
+               #     max-buffer-size: 4m
+               #     loki-retries: "3"
+            ...
+         ```
 
-3. Sign-in/sign-up to [ngrok](https://ngrok.com/) and get your auth token in `ngrok` dashboard.
+3. Run this `gRPC server` sample app.
 
-4. In [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository folder, run the following command to expose the `Envoy` proxy port connected to the `gRPC server` in local development environment to the internet. Take a note of the `ngrok` forwarding URL e.g. `tcp://0.tcp.ap.ngrok.io:xxxxx`.
+4. Sign-in/sign-up to [ngrok](https://ngrok.com/) and get your auth token in `ngrok` dashboard.
 
+5. Run the following command to expose the `gRPC` server port in local development
+   environment to the internet. Take a note of the `ngrok` forwarding URL e.g. `tcp://0.tcp.ap.ngrok.io:xxxxx`.
    ```
    make ngrok NGROK_AUTHTOKEN=xxxxxxxxxxx    # Use your ngrok auth token
    ```
+   > :exclamation:
+   If you run `dependency services`, go to [grpc-plugin-dependencies](https://github.com/AccelByte/grpc-plugin-dependencies) repository folder and run `make ngrok` there.
 
-5. [Create an OAuth Client](https://docs.accelbyte.io/guides/access/iam-client.html) with `confidential` client type with the following permissions. Keep the `Client ID` and `Client Secret`.
+6. [Create an OAuth Client](https://docs.accelbyte.io/guides/access/iam-client.html) with `confidential` client type with the following permissions. Keep the `Client ID` and `Client Secret`.
 
    - ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:PLUGINS [CREATE, READ, UPDATE, DELETE]
    - ADMIN:NAMESPACE:{namespace}:USER:*:CLOUDSAVE:RECORD [CREATE, READ, UPDATE, DELETE]
@@ -244,7 +283,7 @@ in local development environment to the internet so that it can be called by
 
    > :warning: **Oauth Client created in this step is different from the one from Prerequisites section:** It is required by [demo.sh](demo.sh) script in the next step to register the `gRPC Server` URL and also to create and delete test users.
 
-6. Run the [demo.sh](demo.sh) script to simulate cloudsave operation which calls this sample `gRPC server` using the `Client ID` and `Client Secret` created in the previous step. Pay attention to sample `gRPC server` console log when the script is running. `gRPC Server` methods should get called.
+7. Run the [demo.sh](demo.sh) script to simulate cloudsave operation which calls this sample `gRPC server` using the `Client ID` and `Client Secret` created in the previous step. Pay attention to sample `gRPC server` console log when the script is running. `gRPC Server` methods should get called.
 
    ```
    export AB_BASE_URL='https://demo.accelbyte.io'
