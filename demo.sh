@@ -7,7 +7,6 @@
 set -e
 set -o pipefail
 
-test -n "$GRPC_SERVER_URL" || (echo "GRPC_SERVER_URL is not set"; exit 1)
 test -n "$AB_CLIENT_ID" || (echo "AB_CLIENT_ID is not set"; exit 1)
 test -n "$AB_CLIENT_SECRET" || (echo "AB_CLIENT_SECRET is not set"; exit 1)
 test -n "$AB_NAMESPACE" || (echo "AB_NAMESPACE is not set"; exit 1)
@@ -27,8 +26,6 @@ get_code_challenge()
 
 clean_up()
 {
-  #ACCESS_TOKEN="$(curl -s ${AB_BASE_URL}/iam/v3/oauth/token -H 'Content-Type: application/x-www-form-urlencoded' -u "$AB_CLIENT_ID:$AB_CLIENT_SECRET" -d "grant_type=client_credentials" | jq --raw-output .access_token)"
-
   echo Deleting player ...
   curl -X DELETE "${AB_BASE_URL}/iam/v3/admin/namespaces/$AB_NAMESPACE/users/$USER_ID/information" -H "Authorization: Bearer $ACCESS_TOKEN"
 
@@ -43,10 +40,32 @@ echo Logging in client ...
 
 ACCESS_TOKEN="$(curl -s ${AB_BASE_URL}/iam/v3/oauth/token -H 'Content-Type: application/x-www-form-urlencoded' -u "$AB_CLIENT_ID:$AB_CLIENT_SECRET" -d "grant_type=client_credentials" | jq --raw-output .access_token)"
 
-echo Registering cloudsave validator $GRPC_SERVER_URL ...
+if [ -n "$GRPC_SERVER_URL" ]; then
+  echo Registering cloudsave validator \(replace exising\) $GRPC_SERVER_URL ...
 
-curl -X POST -s "${AB_BASE_URL}/cloudsave/v1/admin/namespaces/$AB_NAMESPACE/plugins" -H "Authorization: Bearer $ACCESS_TOKEN" -H 'Content-Type: application/json' -d "{\"customConfig\":{\"GRPCAddress\":\"${GRPC_SERVER_URL}\"},\"customFunction\":{\"afterReadGameRecord\":true,\"beforeWritePlayerRecord\":true},\"extendType\":\"CUSTOM\"}" >/dev/null
+  curl -X DELETE -s "${AB_BASE_URL}/cloudsave/v1/admin/namespaces/$AB_NAMESPACE/plugins" \
+      -H "Authorization: Bearer $ACCESS_TOKEN" \
+      -H 'Content-Type: application/json' >/dev/null     # Ignore delete error
 
+  curl -X POST -s "${AB_BASE_URL}/cloudsave/v1/admin/namespaces/$AB_NAMESPACE/plugins" \
+      -H "Authorization: Bearer $ACCESS_TOKEN" \
+      -H 'Content-Type: application/json' \
+      -d "{\"customConfig\":{\"GRPCAddress\":\"${GRPC_SERVER_URL}\"},\"customFunction\":{\"afterReadGameRecord\":true,\"beforeWritePlayerRecord\":true},\"extendType\":\"CUSTOM\"}" >/dev/null
+elif [ -n "$EXTEND_APP_NAME" ]; then
+  echo Registering cloudsave validator \(replace exising\) $EXTEND_APP_NAME ...
+
+  curl -X DELETE -s "${AB_BASE_URL}/cloudsave/v1/admin/namespaces/$AB_NAMESPACE/plugins" \
+      -H "Authorization: Bearer $ACCESS_TOKEN" \
+      -H 'Content-Type: application/json' >/dev/null     # Ignore delete error
+
+  curl -X POST -s "${AB_BASE_URL}/cloudsave/v1/admin/namespaces/$AB_NAMESPACE/plugins" \
+      -H "Authorization: Bearer $ACCESS_TOKEN" \
+      -H 'Content-Type: application/json' \
+      -d "{\"appConfig\":{\"appName\":\"$EXTEND_APP_NAME\"},\"customFunction\":{\"afterReadGameRecord\":true,\"beforeWritePlayerRecord\":true},\"extendType\":\"APP\"}" >/dev/null
+else
+  echo "GRPC_SERVER_URL or EXTEND_APP_NAME is not set"
+  exit 1
+fi
 echo Creating PLAYER ...
 
 USER_ID="$(curl -s "${AB_BASE_URL}/iam/v4/public/namespaces/$AB_NAMESPACE/users" -H "Authorization: Bearer $ACCESS_TOKEN" -H 'Content-Type: application/json' -d "{\"authType\":\"EMAILPASSWD\",\"country\":\"ID\",\"dateOfBirth\":\"1995-01-10\",\"displayName\":\"Cloudsave gRPC Player\",\"emailAddress\":\"${DEMO_PREFIX}_player@test.com\",\"password\":\"GFPPlmdb2-\",\"username\":\"${DEMO_PREFIX}_player\"}" | jq --raw-output .userId)"
