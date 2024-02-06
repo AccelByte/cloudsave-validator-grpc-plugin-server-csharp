@@ -396,6 +396,10 @@ FodyWeavers.xsd
 */.dotnet/*
 */.local/*
 */.nuget/*
+.dotnet/*
+.nuget/
+NuGet/*
+
 
 # JetBrains IDE
 .idea/
