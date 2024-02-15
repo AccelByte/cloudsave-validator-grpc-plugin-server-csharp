@@ -426,3 +426,6 @@ Thumbs.db
 
 # Local Env File
 .env
+
+# Build Output
+.output
