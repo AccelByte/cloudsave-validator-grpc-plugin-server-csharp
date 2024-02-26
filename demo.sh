@@ -11,9 +11,6 @@ test -n "$AB_CLIENT_ID" || (echo "AB_CLIENT_ID is not set"; exit 1)
 test -n "$AB_CLIENT_SECRET" || (echo "AB_CLIENT_SECRET is not set"; exit 1)
 test -n "$AB_NAMESPACE" || (echo "AB_NAMESPACE is not set"; exit 1)
 
-DEMO_PREFIX='cloudsave_grpc_demo'
-GRPC_SERVER_URL="$(echo "$GRPC_SERVER_URL" | sed 's@^.*/@@')"   # Remove leading tcp:// if any
-
 get_code_verifier() 
 {
   echo $RANDOM | sha256sum | cut -d ' ' -f 1   # For demo only: In reality, it needs to be secure random
@@ -23,6 +20,12 @@ get_code_challenge()
 {
   echo -n "$1" | sha256sum | xxd -r -p | base64 -w 0 | sed -e 's/\+/-/g' -e 's/\//\_/g' -e 's/=//g'
 }
+
+CURRENT_TIME=$(date)
+RANDOM_PREFIX="$(get_code_verifier | cut -c1-6)"
+
+DEMO_PREFIX='cs_grpc_demo_cs_'$RANDOM_PREFIX
+GRPC_SERVER_URL="$(echo "$GRPC_SERVER_URL" | sed 's@^.*/@@')"   # Remove leading tcp:// if any
 
 clean_up()
 {
@@ -68,7 +71,7 @@ else
 fi
 echo Creating PLAYER ...
 
-USER_ID="$(curl -s "${AB_BASE_URL}/iam/v4/public/namespaces/$AB_NAMESPACE/users" -H "Authorization: Bearer $ACCESS_TOKEN" -H 'Content-Type: application/json' -d "{\"authType\":\"EMAILPASSWD\",\"country\":\"ID\",\"dateOfBirth\":\"1995-01-10\",\"displayName\":\"Cloudsave gRPC Player\",\"emailAddress\":\"${DEMO_PREFIX}_player@test.com\",\"password\":\"GFPPlmdb2-\",\"username\":\"${DEMO_PREFIX}_player\"}" | jq --raw-output .userId)"
+USER_ID="$(curl -s "${AB_BASE_URL}/iam/v4/public/namespaces/$AB_NAMESPACE/users" -H "Authorization: Bearer $ACCESS_TOKEN" -H 'Content-Type: application/json' -d "{\"authType\":\"EMAILPASSWD\",\"country\":\"ID\",\"dateOfBirth\":\"1995-01-10\",\"displayName\":\"Cloudsave gRPC Player $RANDOM_PREFIX\",\"uniqueDisplayName\":\"Cloudsave gRPC Player $RANDOM_PREFIX\",\"emailAddress\":\"${DEMO_PREFIX}_player@test.com\",\"password\":\"GFPPlmdb2-\",\"username\":\"${DEMO_PREFIX}_player\"}" | jq --raw-output .userId)"
 
 if [ "$USER_ID" == "null" ]; then
   echo "Failed to create player with email ${DEMO_PREFIX}_player@test.com, please delete existing first!"
