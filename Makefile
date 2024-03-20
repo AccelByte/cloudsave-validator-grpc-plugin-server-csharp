@@ -70,17 +70,6 @@ endif
 		-v $$(pwd):/data \
 		-w /data cloudsave-test-functional bash ./test/functional/test-accelbyte-hosted.sh
 
-demo:
-	@test -n "$(ENV_FILE_PATH)" || (echo "ENV_FILE_PATH is not set" ; exit 1)
-	docker build -f Dockerfile.demo.yml -t ${DEMO_NAME} .
-	docker run -t --rm \
-		-u $$(id -u):$$(id -g) \
-		-v $$(pwd):/data/ \
-		-w /data \
-		-e HOME="/data" \
-		--env-file $(ENV_FILE_PATH) \
-		${DEMO_NAME} ./demo.sh
-
 ngrok:
 	@test -n "$(NGROK_AUTHTOKEN)" || (echo "NGROK_AUTHTOKEN is not set" ; exit 1)
 	docker run --rm -it --net=host -e NGROK_AUTHTOKEN=$(NGROK_AUTHTOKEN) ngrok/ngrok:3-alpine \
