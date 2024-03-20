@@ -7,7 +7,7 @@ SHELL := /bin/bash
 IMAGE_NAME := $(shell basename "$$(pwd)")-app
 IMAGE_VERSION ?= latest
 BUILDER := grpc-plugin-server-builder
-DOTNETVER := 6.0.302
+DOTNETVER := 6.0
 DEMO_NAME := $(shell basename "$$(pwd)")-app
 APP_PATH := AccelByte.PluginArch.CloudsaveValidator.Demo.Server
 
