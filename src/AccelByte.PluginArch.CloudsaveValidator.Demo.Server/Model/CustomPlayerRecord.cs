@@ -4,7 +4,6 @@
 
 using System;
 using System.Text.Json.Serialization;
-using static Google.Protobuf.Reflection.SourceCodeInfo.Types;
 
 namespace AccelByte.PluginArch.CloudsaveValidator.Demo.Server.Model
 {
