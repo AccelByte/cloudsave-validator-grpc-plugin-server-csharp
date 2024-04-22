@@ -11,20 +11,24 @@ flowchart LR
    CL --- SV
 ```
 
-`AccelByte Gaming Services`  features can be customized by using `Extend Override`
-apps. An `Extend Override` app is essentially a `gRPC server` which contains one 
-or more custom functions which can be called by `AccelByte Gaming Services` 
+`AccelByte Gaming Services` (AGS) features can be customized with 
+`Extend Override` apps. An `Extend Override` app is a `gRPC server` which 
+contains one or more custom functions which can be called by AGS 
 instead of the default functions.
 
 ## Overview
 
-This repository contains a sample `Extend Override` app for `cloudsave validator`
-written in `C#`.  It provides a simple custom cloudsave record validation 
-function for cloudsave service in `AccelByte Gaming Services`.
+This repository serves as a template project for an `Extend Override` 
+app for `cloudsave validator` written in `C#`. You can clone this repository
+and start implementing custom functions which can then be called by AGS.
 
-This sample app also shows the instrumentation setup necessary for 
-observability. It is required so that metrics, traces, and logs are able to 
-flow properly when the app is deployed.
+By using this repository as a template project, you will get the recommended 
+authentication and authorization implemented out-of-the-box. You will also get 
+some instrumentation for observability so that metrics, traces, and 
+logs will be available when the app is deployed.
+
+As an example to get you started, this template project contains sample 
+custom functions for validating cloudsave payloads.
 
 ## Prerequisites
 
@@ -32,21 +36,15 @@ flow properly when the app is deployed.
 
    a. bash
 
-   b. curl
+   b. make
 
-   c. make
+   c. [docker v23.x](https://docs.docker.com/engine/install/ubuntu/)
 
-   d. [docker v23.x](https://docs.docker.com/engine/install/ubuntu/)
+   d. .net 6 sdk
 
-   e. .net 6 sdk
+   e. [postman](https://www.postman.com/)
 
-   f. git
-
-   g. jq
-
-   h. [postman](https://www.postman.com/)
-
-2. Access to `AccelByte Gaming Services` environment.
+2. Access to AGS environment.
 
    a. Base URL
    
@@ -59,10 +57,17 @@ flow properly when the app is deployed.
 
 ## Setup
 
-1. Create a docker compose `.env` file by copying the content of [.env.template](.env.template) file.
+To be able to run the sample custom functions, you will need to follow these 
+setup steps.
 
-   > :warning: **The host OS environment variables have higher precedence compared to `.env` file variables**: If the variables in `.env` file do not seem to take effect properly, check if there are host OS environment variables with the same name. 
-   See documentation about [docker compose environment variables precedence](https://docs.docker.com/compose/environment-variables/envvars-precedence/) for more details.
+1. Create a docker compose `.env` file by copying the content of 
+   [.env.template](.env.template) file.
+
+   > :warning: **The host OS environment variables have higher precedence compared to `.env` file variables**: If the variables in `.env` file do not seem to take 
+   effect properly, check if there are host OS environment variables with the 
+   same name. See documentation about 
+   [docker compose environment variables precedence](https://docs.docker.com/compose/environment-variables/envvars-precedence/) 
+   for more details.
 
 2. Fill in the required environment variables in `.env` file as shown below.
 
@@ -74,30 +79,31 @@ flow properly when the app is deployed.
    PLUGIN_GRPC_SERVER_AUTH_ENABLED=true      # Enable or disable access token validation
    ```
 
-   > :info: **In this sample app, PLUGIN_GRPC_SERVER_AUTH_ENABLED is `true` by default**: If it is set to `false`, the 
-   `gRPC server` can be invoked without `AccelByte Gaming Services` access token. This option is provided for development 
-   purpose only. It is recommended to enable `gRPC server` access token validation in production environment.
+   > :info: **In this sample app, PLUGIN_GRPC_SERVER_AUTH_ENABLED is `true` by default**: If it is set to `false`, th gRPC server can be invoked without an AGS access 
+   token. This option is provided for development purpose only. It is 
+   recommended to enable `gRPC server` access token validation in production 
+   environment.
 
-For more options, create `src/AccelByte.PluginArch.CloudsaveValidator.Demo.Server/appsettings.Development.json` and fill in the required configuration.
+   For more options, create `src/AccelByte.PluginArch.CloudsaveValidator.Demo.Server/appsettings.Development.json` and fill in the required configuration.
 
-```json
-{
-  "EnableAuthorization": true,                 // Enable or disable access token and permission check (env var: PLUGIN_GRPC_SERVER_AUTH_ENABLED)
-  "RevocationListRefreshPeriod": 60,
-  "AccelByte": {
-    "BaseUrl": "https://demo.accelbyte.io",     // Base URL (env var: AB_BASE_URL)
-    "ClientId": "xxxxxxxxxx",                   // Client ID (env var: AB_CLIENT_ID)    
-    "ClientSecret": "xxxxxxxxxx",               // Client Secret (env var: AB_CLIENT_SECRET)
-    "AppName": "CLOUDSAVEGRPCSERVICE",
-    "TraceIdVersion": "1",
-    "Namespace": "xxxxxxxxxx",                  // Namespace ID (env var: AB_NAMESPACE)
-    "EnableTraceId": true,
-    "EnableUserAgentInfo": true,
-    "ResourceName": "CLOUDSAVEGRPCSERVICE"
-  }
-}
-```
-> :warning: **Environment variable values will override related configuration values in this file**.
+   ```json
+   {
+      "EnableAuthorization": true,                    // Enable or disable access token and permission check (env var: PLUGIN_GRPC_SERVER_AUTH_ENABLED)
+      "RevocationListRefreshPeriod": 60,
+      "AccelByte": {
+         "BaseUrl": "https://demo.accelbyte.io",      // Base URL (env var: AB_BASE_URL)
+         "ClientId": "xxxxxxxxxx",                    // Client ID (env var: AB_CLIENT_ID)    
+         "ClientSecret": "xxxxxxxxxx",                // Client Secret (env var: AB_CLIENT_SECRET)
+         "AppName": "CLOUDSAVEGRPCSERVICE",
+         "TraceIdVersion": "1",
+         "Namespace": "xxxxxxxxxx",                   // Namespace ID (env var: AB_NAMESPACE)
+         "EnableTraceId": true,
+         "EnableUserAgentInfo": true,
+         "ResourceName": "CLOUDSAVEGRPCSERVICE"
+      }
+   }
+   ```
+   > :warning: **Environment variable values will override related configuration values in this file**.
 
 ## Building
 
@@ -121,8 +127,7 @@ docker compose up --build
 
 ### Test in Local Development Environment
 
-> :warning: **To perform the following, make sure PLUGIN_GRPC_SERVER_AUTH_ENABLED is set to `false`**: Otherwise,
-the gRPC request will be rejected by the `gRPC server`.
+> :warning: **To perform the following, make sure PLUGIN_GRPC_SERVER_AUTH_ENABLED is set to `false`**: Otherwise, the gRPC request will be rejected by the `gRPC server`.
 
 The custom functions in this sample app can be tested locally using [postman](https://www.postman.com/).
 
@@ -206,9 +211,9 @@ The custom functions in this sample app can be tested locally using [postman](ht
 
 ### Test with AccelByte Gaming Services
 
-For testing this sample app which is running locally with `AccelByte Gaming Services`,
-the `gRPC server` needs to be exposed to the internet. To do this without requiring 
-public IP, we can use something like [ngrok](https://ngrok.com/).
+For testing this sample app which is running locally with AGS, the gRPC servers 
+needs to be exposed to the internet. To do this without requiring public IP, we 
+can use something like [ngrok](https://ngrok.com/).
 
 1. Run this `gRPC server` sample app by using command below.
 
@@ -231,11 +236,11 @@ public IP, we can use something like [ngrok](https://ngrok.com/).
 4. [Create an OAuth Client](https://docs.accelbyte.io/gaming-services/services/access/authorization/manage-access-control-for-applications/#create-an-iam-client) with `confidential` client type with the following permissions. Keep the `Client ID` and `Client Secret`.   
    
    - For AGS Premium customers:
-      - ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:PLUGINS [CREATE, READ, UPDATE, DELETE]
-      - ADMIN:NAMESPACE:{namespace}:USER:*:CLOUDSAVE:RECORD [CREATE, READ, UPDATE, DELETE]
-      - ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE, READ, UPDATE, DELETE]
-      - NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE, READ, UPDATE, DELETE]
-      - ADMIN:NAMESPACE:{namespace}:INFORMATION:USER:* [DELETE]
+      - `ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:PLUGINS [CREATE,READ,UPDATE,DELETE]`
+      - `ADMIN:NAMESPACE:{namespace}:USER:*:CLOUDSAVE:RECORD [CREATE,READ,UPDATE,DELETE]`
+      - `ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE,READ,UPDATE,DELETE]`
+      - `NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE,READ,UPDATE,DELETE]`
+      - `ADMIN:NAMESPACE:{namespace}:INFORMATION:USER:* [DELETE]`
    - For AGS Starter customers:
       - Cloud Save -> Custom Configuration (Read, Create, Update, Delete)
       - Cloud Save -> Game Records (Read, Create, Update, Delete)
@@ -302,15 +307,36 @@ will be accessible at http://localhost:3000.
 After done testing, you may want to deploy this app to `AccelByte Gaming Services`.
 
 1. [Create a new Extend Override App on Admin Portal](https://docs.accelbyte.io/gaming-services/services/extend/override-ags-feature/getting-started-with-cloudsave-validator-customization/#create-the-extend-app). Keep the `Repository URI`.
+
 2. Download and setup [extend-helper-cli](https://github.com/AccelByte/extend-helper-cli/) (only if it has not been done previously).
+
 3. Perform docker login with `extend-helper-cli` using the following command.
+
    ```
    extend-helper-cli dockerlogin --namespace <my-game> --app <my-app> --login
    ```
+
    > :exclamation: For your convenience, the above `extend-helper-cli` command can also be 
    copied from `Repository Authentication Command` under the corresponding app detail page.
+
 4. Build and push sample app docker image to AccelByte ECR using the following command.
+   
    ```
    make imagex_push IMAGE_TAG=v0.0.1 REPO_URL=xxxxxxxxxx.dkr.ecr.us-west-2.amazonaws.com/accelbyte/justice/development/extend/xxxxxxxxxx/xxxxxxxxxx
    ```
+
    > :exclamation: **The REPO_URL is obtained from step 1**: It can be found under 'Repository URI' in the app detail.
+
+5. Open Admin Portal, go to **Extend** -> **Overridable Features**. And then select the extend app.
+
+6. To deploy selected image tag, click **Image Version History** and select 
+   desired image tag to be deployed.
+
+7. Click **Deploy Image**, confirm the deployment and go back to App Detail by 
+   clicking **Cancel**.
+
+8. Wait until app status is running.
+
+## Next Step
+
+Proceed to modify this template project and implement your own custom functions.
