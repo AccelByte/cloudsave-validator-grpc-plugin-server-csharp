@@ -57,12 +57,20 @@ APP_NAME="${APP_NAME}-$(echo $RANDOM | sha1sum | head -c 8)"   # Add random suff
 
 echo '# Downloading extend-helper-cli'
 
-curl -sf https://api.github.com/repos/AccelByte/extend-helper-cli/releases/latest \
+case "$(uname -s)" in
+    Darwin*)
+      curl -sf https://api.github.com/repos/AccelByte/extend-helper-cli/releases/latest \
+        | grep "/extend-helper-cli-darwin" | cut -d : -f 2,3 | tr -d \" \
+        | curl -sL --output extend-helper-cli $(cat)
+        ;;
+    *)
+      curl -sf https://api.github.com/repos/AccelByte/extend-helper-cli/releases/latest \
         | grep "/extend-helper-cli-linux" | cut -d : -f 2,3 | tr -d \" \
         | curl -sL --output extend-helper-cli $(cat)
-chmod +x ./extend-helper-cli
+        ;;
+esac
 
-echo '# Login user'
+chmod +x ./extend-helper-cli
 
 CODE_VERIFIER="$(get_code_verifier)"
 CODE_CHALLENGE="$(get_code_challenge "$CODE_VERIFIER")"
