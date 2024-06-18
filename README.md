@@ -32,7 +32,7 @@ custom functions for validating cloudsave payloads.
 
 ## Prerequisites
 
-1. Windows 11 WSL2 or Linux Ubuntu 22.04 with the following tools installed.
+1. Windows 11 WSL2 or Linux Ubuntu 22.04 or macOS 14+ with the following tools installed.
 
    a. Bash
 
@@ -109,6 +109,8 @@ custom functions for validating cloudsave payloads.
    h. [ngrok](https://ngrok.com/)
 
       - Follow installation instruction for Linux [here](https://ngrok.com/download)
+
+   > :exclamation: In macOS, you may use [Homebrew](https://brew.sh/) to easily install some of the tools above.
 
 2. Access to AGS environment.
 
