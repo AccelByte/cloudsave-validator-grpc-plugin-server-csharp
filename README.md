@@ -145,7 +145,7 @@ setup steps.
    PLUGIN_GRPC_SERVER_AUTH_ENABLED=true      # Enable or disable access token validation
    ```
 
-   > :info: **In this sample app, PLUGIN_GRPC_SERVER_AUTH_ENABLED is `true` by default**: If it is set to `false`, th gRPC server can be invoked without an AGS access 
+   > :exclamation: **In this sample app, PLUGIN_GRPC_SERVER_AUTH_ENABLED is `true` by default**: If it is set to `false`, th gRPC server can be invoked without an AGS access 
    token. This option is provided for development purpose only. It is 
    recommended to enable `gRPC server` access token validation in production 
    environment.
