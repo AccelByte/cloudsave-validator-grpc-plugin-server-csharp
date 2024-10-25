@@ -40,6 +40,8 @@ namespace AccelByte.PluginArch.CloudsaveValidator.Demo.Server
                 .UseLocalTokenValidator()
                 .UseAutoRefreshForTokenRevocationList()
                 .Build();
+
+            Sdk.LoginClient(true);
         }
     }
 }
