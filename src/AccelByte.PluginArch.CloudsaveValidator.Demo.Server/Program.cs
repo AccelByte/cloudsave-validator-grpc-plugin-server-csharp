@@ -32,7 +32,7 @@ namespace AccelByte.PluginArch.CloudsaveValidator.Demo.Server
             if (appServiceName == null)
                 appServiceName = "extend-app-cloudsave-validator";
             else
-                appServiceName = $"extend-app-{appServiceName.Trim().ToLower()}";
+                appServiceName = $"extend-app-cv-{appServiceName.Trim().ToLower()}";
 
             Metrics.DefaultRegistry.SetStaticLabels(new Dictionary<string, string>()
             {

@@ -56,7 +56,7 @@ namespace AccelByte.PluginArch.CloudsaveValidator.Demo.Server
             if (appServiceName == null)
                 ServiceName = "extend-app-cloudsave-validator";
             else
-                ServiceName = $"extend-app-{appServiceName.Trim().ToLower()}";
+                ServiceName = $"extend-app-cv-{appServiceName.Trim().ToLower()}";
 
             string? appResourceName = Environment.GetEnvironmentVariable("APP_RESOURCE_NAME");
             if (appResourceName == null)
